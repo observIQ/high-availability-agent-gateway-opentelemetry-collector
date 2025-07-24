@@ -1,0 +1,80 @@
+apiVersion: bindplane.observiq.com/v2
+kind: Configuration
+metadata:
+    name: gw-kind-1
+    labels:
+        agent-type: observiq-otel-collector
+        platform: kubernetes-gateway
+spec:
+    contentType: ""
+    measurementInterval: ""
+    topologyInterval: ""
+    disableLegacyEnvVarNormalization: false
+    sources:
+        - id: 01K0GQ9V877658DP547C8QRG48
+          type: bindplane_gateway
+          parameters:
+            - name: telemetry_types
+              value:
+                - Logs
+                - Metrics
+                - Traces
+            - name: listen_address
+              value: 0.0.0.0
+            - name: grpc_port
+              value: 4317
+            - name: http_port
+              value: 4318
+            - name: grpc_max_recv_msg_size_mib
+              value: 20
+            - name: enable_tls
+              value: false
+            - name: cert_file
+              value: ""
+            - name: key_file
+              value: ""
+            - name: mutual_tls
+              value: false
+            - name: ca_file
+              value: ""
+            - name: enable_grpc_timeout
+              value: true
+            - name: grpc_max_connection_idle
+              value: 60
+            - name: grpc_max_connection_age
+              value: 60
+            - name: grpc_max_connection_age_grace
+              value: 300
+            - name: enable_topology
+              value: true
+            - name: topology_interval
+              value: 1m
+            - name: include_metadata
+              value: false
+            - name: enable_cors
+              value: false
+            - name: cors_allowed_origins
+              value: []
+            - name: cors_allowed_headers
+              value: []
+            - name: cors_max_age
+              value: 0
+          routes:
+            logs:
+                - id: "0"
+                  components:
+                    - destinations/d-external-gw-kind-2
+            metrics:
+                - id: "0"
+                  components:
+                    - destinations/d-external-gw-kind-2
+            traces:
+                - id: "0"
+                  components:
+                    - destinations/d-external-gw-kind-2
+    destinations:
+        - id: d-external-gw-kind-2
+          name: external-gw-kind-2
+    selector:
+        matchLabels:
+            configuration: gw-kind-1

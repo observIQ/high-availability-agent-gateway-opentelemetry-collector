@@ -1,0 +1,23 @@
+# Copy-Paste this into a custom destination in Bindplane.
+
+  loadbalancing:
+    protocol:
+      otlp:
+        tls:
+          insecure: true
+        timeout: 30s
+        retry_on_failure:
+          enabled: true
+          initial_interval: 5s
+          max_elapsed_time: 300s
+          max_interval: 30s
+        sending_queue:
+          enabled: true
+          num_consumers: 10
+          queue_size: 5000
+    resolver:
+      static:
+        hostnames:
+          - gw1:4317
+          - gw2:4317
+          - gw3:4317

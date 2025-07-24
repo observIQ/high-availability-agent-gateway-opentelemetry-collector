@@ -1,0 +1,114 @@
+version: '3.8'
+
+volumes:
+  gw1-storage:      # persistent queue for gateway-1
+  gw2-storage:      # persistent queue for gateway-2
+  gw3-storage:      # persistent queue for gateway-3
+  telgen-storage:   # persistent queue for telemetry generator
+  lb-storage:    # persistent queue for load-balancing gateway
+  external-gw-storage: # persistent queue for external gateway
+
+services:
+  # ────────────── FIRST TIER: LOAD-BALANCING GATEWAY ──────────────
+  lb:
+    image: ghcr.io/observiq/bindplane-agent:1.79.2
+    container_name: lb
+    hostname: lb
+    command: ["--config=/etc/otel/config/lb-config.yaml"]
+    volumes:
+      - ./config:/etc/otel/config
+      - lb-storage:/etc/otel/storage
+    ports:
+      - "4317:4317"   # OTLP gRPC - external endpoint
+      - "4318:4318"   # OTLP HTTP/JSON - external endpoint
+    environment:
+      OPAMP_ENDPOINT: "wss://app.bindplane.com/v1/opamp"
+      OPAMP_SECRET_KEY: "<secret>"
+      OPAMP_LABELS: ephemeral=true
+      MANAGER_YAML_PATH: /etc/otel/config/lb-manager.yaml
+      CONFIG_YAML_PATH: /etc/otel/config/lb-config.yaml
+      LOGGING_YAML_PATH: /etc/otel/config/logging.yaml
+    depends_on: [gw1, gw2, gw3]
+
+  # ────────────── SECOND TIER: GATEWAYS (3×) ──────────────
+  gw1:
+    image: ghcr.io/observiq/bindplane-agent:1.79.2
+    container_name: gw1
+    hostname: gw1
+    command: ["--config=/etc/otel/config/gw-config.yaml"]
+    volumes:
+      - ./config:/etc/otel/config
+      - gw1-storage:/etc/otel/storage  # 60 GiB+ queue
+    environment:
+      OPAMP_ENDPOINT: "wss://app.bindplane.com/v1/opamp"   # point to your Bindplane server
+      OPAMP_SECRET_KEY: "<secret>"
+      OPAMP_LABELS: ephemeral=true
+      MANAGER_YAML_PATH: /etc/otel/config/gw1-manager.yaml
+      CONFIG_YAML_PATH: /etc/otel/config/gw-config.yaml
+      LOGGING_YAML_PATH: /etc/otel/config/logging.yaml
+
+  gw2:
+    image: ghcr.io/observiq/bindplane-agent:1.79.2
+    container_name: gw2
+    hostname: gw2
+    command: ["--config=/etc/otel/config/gw-config.yaml"]
+    volumes:
+      - ./config:/etc/otel/config
+      - gw2-storage:/etc/otel/storage  # 60 GiB+ queue
+    environment:
+      OPAMP_ENDPOINT: "wss://app.bindplane.com/v1/opamp"   # point to your Bindplane server
+      OPAMP_SECRET_KEY: "<secret>"
+      OPAMP_LABELS: ephemeral=true
+      MANAGER_YAML_PATH: /etc/otel/config/gw2-manager.yaml
+      CONFIG_YAML_PATH: /etc/otel/config/gw-config.yaml
+      LOGGING_YAML_PATH: /etc/otel/config/logging.yaml
+    
+  gw3:
+    image: ghcr.io/observiq/bindplane-agent:1.79.2
+    container_name: gw3
+    hostname: gw3
+    command: ["--config=/etc/otel/config/gw-config.yaml"]
+    volumes:
+      - ./config:/etc/otel/config
+      - gw3-storage:/etc/otel/storage  # 60 GiB+ queue
+    environment:
+      OPAMP_ENDPOINT: "wss://app.bindplane.com/v1/opamp"   # point to your Bindplane server
+      OPAMP_SECRET_KEY: "<secret>"
+      OPAMP_LABELS: ephemeral=true
+      MANAGER_YAML_PATH: /etc/otel/config/gw3-manager.yaml
+      CONFIG_YAML_PATH: /etc/otel/config/gw-config.yaml
+      LOGGING_YAML_PATH: /etc/otel/config/logging.yaml
+
+  # ────────────── TELEMETRY GENERATOR ──────────────
+  telgen:
+    image: ghcr.io/observiq/bindplane-agent:1.79.2
+    container_name: telgen
+    hostname: telgen
+    command: ["--config=/etc/otel/config/telgen-config.yaml"]
+    volumes:
+      - ./config:/etc/otel/config
+      - telgen-storage:/etc/otel/storage  # 60 GiB+ queue
+    environment:
+      OPAMP_ENDPOINT: "wss://app.bindplane.com/v1/opamp"   # point to your Bindplane server
+      OPAMP_SECRET_KEY: "<secret>"
+      OPAMP_LABELS: ephemeral=true
+      MANAGER_YAML_PATH: /etc/otel/config/telgen-manager.yaml
+      CONFIG_YAML_PATH: /etc/otel/config/telgen-config.yaml
+      LOGGING_YAML_PATH: /etc/otel/config/logging.yaml
+
+  # ────────────── EXTERNAL GATEWAY ──────────────
+  external-gw:
+    image: ghcr.io/observiq/bindplane-agent:1.79.2
+    container_name: external-gw
+    hostname: external-gw
+    command: ["--config=/etc/otel/config/external-gw-config.yaml"]
+    volumes:
+      - ./config:/etc/otel/config
+      - external-gw-storage:/etc/otel/storage  # 60 GiB+ queue
+    environment:
+      OPAMP_ENDPOINT: "wss://app.bindplane.com/v1/opamp"   # point to your Bindplane server
+      OPAMP_SECRET_KEY: "<secret>"
+      OPAMP_LABELS: ephemeral=true
+      MANAGER_YAML_PATH: /etc/otel/config/external-gw-manager.yaml
+      CONFIG_YAML_PATH: /etc/otel/config/external-gw-config.yaml
+      LOGGING_YAML_PATH: /etc/otel/config/logging.yaml

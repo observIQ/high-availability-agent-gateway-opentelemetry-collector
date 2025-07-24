@@ -1,0 +1,12 @@
+apiVersion: bindplane.observiq.com/v1
+kind: Destination
+metadata:
+    name: DevNull
+spec:
+    type: dev_null
+    parameters:
+        - name: telemetry_types
+          value:
+            - Logs
+            - Metrics
+            - Traces

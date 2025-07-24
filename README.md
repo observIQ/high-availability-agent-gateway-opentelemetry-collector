@@ -1,45 +1,30 @@
-# [REPO NAME HERE]
+# High Availability Agent & Gateway Mode for the Opentelemetry Collector
 
-<center>
+This repository contains example code demonstrating how to implement high availability and gateway mode patterns with the OpenTelemetry Collector. The code shows how to:
 
-[![Action Status](https://github.com/observIQ/<repo_name>/workflows/Build/badge.svg)](https://github.com/observIQ/<repo_name>/actions)
-[![Action Test Status](https://github.com/observIQ/<repo_name>/workflows/Tests/badge.svg)](https://github.com/observIQ/<repo_name>/actions)
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+- Set up redundant collectors for high availability
+- Configure collectors in gateway mode to aggregate and forward telemetry data
+- Handle failover between collectors
+- Scale collectors horizontally
 
-</center>
-
-[INSERT AN OVERVIEW DESCRIPTION HERE]
+For a detailed walkthrough of the code and concepts, check out our blog post: [Building Resilient Observability Pipelines with OpenTelemetry Collector HA & Gateway Mode](https://bindplane.com/blog/opentelemetry-collector-ha-gateway-mode) (Note: Update with actual blog post URL)
 
 ## Quick Start
 
-### Installation
+The examples are organized into the following directories:
 
-#### Linux
+- `/docker-nginx` - High Availability collector configuration using Nginx as a load balancer in Docker Compose. (Architecture compatible with VMs)
+- `/docker-loadbalancing-exporter` - High Availability collector configuration using the OpenTelemetry Collectors `loadbalancing` exporter as a load balancer in Docker Compose. (Architecture compatible with VMs)
+- `/k8s-loadbalancing` - Native Kubernetes load balancing for High Availability collector configuration. (Real-life use case)
 
-[INSERT INSTALLATION INSTRUCTIONS HERE]
+Each directory contains a README with specific setup instructions.
 
-#### Windows
+## Prerequisites
 
-[INSERT INSTALLATION INSTRUCTIONS HERE]
+- Docker and Docker Compose for running the local examples
+- Two Kubernetes clusters for running the Kubernetes examples
+- Basic familiarity with OpenTelemetry concepts
 
-#### macOS
+## How can we help?
 
-[INSERT INSTALLATION INSTRUCTIONS HERE]
-
-#### Kubernetes
-
-[INSERT INSTALLATION INSTRUCTIONS HERE]
-
-## Configuration
-
-[INSERT CONFIGURATION INSTRUCTIONS HERE IF NEEDED]
-
-[INSERT EXAMPLE CONFIG HERE IF NEEDED]
-
-# Community
-
-The [REPO NAME HERE] is an open source project. If you'd like to contribute, take a look at our [contribution guidelines](/docs/CONTRIBUTING.md) and [developer guide](/docs/development.md). We look forward to building with you.
-
-# How can we help?
-
-If you need any additional help feel free to file a GitHub issue or reach out to us at support@observiq.com.
+If you need any additional help feel free to file a GitHub issue or reach out to us at support@bindplane.com.

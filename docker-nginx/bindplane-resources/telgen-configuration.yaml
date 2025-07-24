@@ -1,0 +1,43 @@
+apiVersion: bindplane.observiq.com/v2
+kind: Configuration
+metadata:
+    name: telgen
+    labels:
+        agent-type: observiq-otel-collector
+        platform: linux
+spec:
+    contentType: ""
+    measurementInterval: ""
+    topologyInterval: ""
+    disableLegacyEnvVarNormalization: false
+    sources:
+        - id: 01JYZPBW4AEAQNH1B5GCGH10QJ
+          type: telemetrygenerator
+          parameters:
+            - name: generator_type
+              value: Logs
+            - name: payloads
+              value: 1
+            - name: severity_level
+              value: info
+            - name: body
+              value: 127.0.0.1 - - [30/Jun/2025:12:00:00 +0000] \"GET /index.html HTTP/1.1\" 200 512
+            - name: logs_resource_attributes
+              value: {}
+            - name: attributes
+              value: {}
+            - name: otlp_type
+              value: logs
+            - name: metrics_resource_attributes
+              value: {}
+          routes:
+            logs+metrics+traces:
+                - id: "0"
+                  components:
+                    - destinations/d-otlp-lb
+    destinations:
+        - id: d-otlp-lb
+          name: otlp-lb
+    selector:
+        matchLabels:
+            configuration: telgen

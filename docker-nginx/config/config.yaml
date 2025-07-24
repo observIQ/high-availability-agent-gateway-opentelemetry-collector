@@ -1,0 +1,186 @@
+# This configuration is managed by Bindplane.
+# Configuration: telgen:1
+receivers:
+    hostmetrics/_agent_health_metrics:
+        collection_interval: 1m0s
+        scrapers:
+            process:
+                include:
+                    match_type: regexp
+                    names:
+                        - ^observiq-otel-collector(.exe)?$
+                metrics:
+                    process.context_switches:
+                        enabled: false
+                    process.cpu.time:
+                        enabled: false
+                    process.cpu.utilization:
+                        enabled: true
+                    process.disk.io:
+                        enabled: false
+                    process.disk.operations:
+                        enabled: false
+                    process.handles:
+                        enabled: false
+                    process.memory.usage:
+                        enabled: false
+                    process.memory.utilization:
+                        enabled: true
+                    process.memory.virtual:
+                        enabled: false
+                    process.open_file_descriptors:
+                        enabled: false
+                    process.paging.faults:
+                        enabled: false
+                    process.signals_pending:
+                        enabled: false
+                    process.threads:
+                        enabled: false
+                mute_process_exe_error: true
+                mute_process_io_error: false
+                mute_process_name_error: true
+                mute_process_user_error: false
+    telemetrygeneratorreceiver/s-01JYZPBW4AEAQNH1B5GCGH10QJ:
+        generators:
+            - additional_config:
+                body: 127.0.0.1 - - [30/Jun/2025:12:00:00 +0000] \"GET /index.html HTTP/1.1\" 200 512
+                severity: 9
+              type: logs
+        payloads_per_second: 1
+processors:
+    batch/otlp-lb: null
+    metricstransform/_agent_health_metrics:
+        transforms:
+            - action: update
+              include: process.cpu.utilization
+              match_type: strict
+              operations:
+                - action: aggregate_labels
+                  aggregation_type: sum
+                  label_set: []
+            - action: update
+              include: (.*)$$
+              match_type: regexp
+              new_name: agent_health_metrics_$$1
+    snapshotprocessor: null
+    snapshotprocessor/_d0_otlp-lb-0: null
+    snapshotprocessor/_s0_source0_01JYZPBW4AEAQNH1B5GCGH10QJ: null
+    throughputmeasurement/_d0_logs_otlp-lb-0:
+        bindplane_extension: bindplane
+        enabled: true
+        extra_labels: {}
+        sampling_ratio: 1
+    throughputmeasurement/_d1_logs_otlp-lb-0:
+        bindplane_extension: bindplane
+        enabled: true
+        extra_labels: {}
+        sampling_ratio: 1
+    throughputmeasurement/_s0_logs_source0_01JYZPBW4AEAQNH1B5GCGH10QJ:
+        bindplane_extension: bindplane
+        enabled: true
+        extra_labels:
+            destinations: '|otlp-lb|'
+        measure_log_raw_bytes: true
+        sampling_ratio: 1
+    throughputmeasurement/_s1_logs_source0_01JYZPBW4AEAQNH1B5GCGH10QJ:
+        bindplane_extension: bindplane
+        enabled: true
+        extra_labels: {}
+        sampling_ratio: 1
+    transform/_agent_health_metrics:
+        error_mode: ignore
+        metric_statements:
+            - context: datapoint
+              statements:
+                - set(attributes["agent"], "0197bf63-02a2-7076-badb-171d4ba59a1c")
+                - set(attributes["configuration"], "telgen")
+                - delete_key(resource.attributes, "process.command")
+                - delete_key(resource.attributes, "process.command_line")
+                - delete_key(resource.attributes, "process.executable.name")
+                - delete_key(resource.attributes, "process.executable.path")
+                - delete_key(resource.attributes, "process.owner")
+                - delete_key(resource.attributes, "process.parent_pid")
+                - delete_key(resource.attributes, "process.pid")
+    transform/otlp-lb__drop-raw-copy:
+        log_statements:
+            - context: log
+              statements:
+                - delete_key(attributes, "log.record.original")
+connectors:
+    forward/d-d-otlp-lb: null
+exporters:
+    otlp/otlp-lb:
+        compression: gzip
+        endpoint: otlp-lb:4317
+        retry_on_failure:
+            enabled: true
+            initial_interval: 5s
+            max_elapsed_time: 300s
+            max_interval: 30s
+        sending_queue:
+            enabled: true
+            num_consumers: 10
+            queue_size: 5000
+            storage: file_storage/otlp-lb
+        timeout: 30s
+        tls:
+            insecure: true
+    otlphttp/_agent_health_metrics:
+        endpoint: https://app.bindplane.com/v1/agents/0197bf63-02a2-7076-badb-171d4ba59a1c/health
+        headers:
+            X-Bindplane-Account-ID: 01JFJGVKWHN97VN1J65YC37SSD
+        retry_on_failure:
+            enabled: false
+        sending_queue:
+            enabled: false
+        timeout: 10s
+extensions:
+    file_storage/otlp-lb:
+        compaction:
+            directory: ${OIQ_OTEL_COLLECTOR_HOME}/storage
+            on_rebound: true
+        directory: ${OIQ_OTEL_COLLECTOR_HOME}/storage
+service:
+    extensions:
+        - file_storage/otlp-lb
+    pipelines:
+        logs/d-d-otlp-lb:
+            receivers:
+                - forward/d-d-otlp-lb
+            processors:
+                - throughputmeasurement/_d0_logs_otlp-lb-0
+                - snapshotprocessor/_d0_otlp-lb-0
+                - throughputmeasurement/_d1_logs_otlp-lb-0
+                - batch/otlp-lb
+                - transform/otlp-lb__drop-raw-copy
+                - snapshotprocessor
+            exporters:
+                - otlp/otlp-lb
+        logs/s-01JYZPBW4AEAQNH1B5GCGH10QJ:
+            receivers:
+                - telemetrygeneratorreceiver/s-01JYZPBW4AEAQNH1B5GCGH10QJ
+            processors:
+                - throughputmeasurement/_s0_logs_source0_01JYZPBW4AEAQNH1B5GCGH10QJ
+                - snapshotprocessor/_s0_source0_01JYZPBW4AEAQNH1B5GCGH10QJ
+                - throughputmeasurement/_s1_logs_source0_01JYZPBW4AEAQNH1B5GCGH10QJ
+            exporters:
+                - forward/d-d-otlp-lb
+        metrics/_agent_health_metrics:
+            receivers:
+                - hostmetrics/_agent_health_metrics
+            processors:
+                - metricstransform/_agent_health_metrics
+                - transform/_agent_health_metrics
+            exporters:
+                - otlphttp/_agent_health_metrics
+    telemetry:
+        metrics:
+            readers:
+                - pull:
+                    exporter:
+                        prometheus:
+                            host: localhost
+                            port: 8888
+            level: normal
+        resource:
+            service.instance.id: 0197bf63-02a2-7076-badb-171d4ba59a1c

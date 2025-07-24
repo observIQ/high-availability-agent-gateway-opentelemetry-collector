@@ -1,0 +1,76 @@
+apiVersion: bindplane.observiq.com/v2
+kind: Configuration
+metadata:
+    name: lb
+    labels:
+        agent-type: observiq-otel-collector
+        platform: linux
+spec:
+    contentType: ""
+    measurementInterval: ""
+    topologyInterval: ""
+    disableLegacyEnvVarNormalization: false
+    sources:
+        - id: 01JZ2Z8VAJ8VP0QYPPV69H34JV
+          type: otlp
+          parameters:
+            - name: telemetry_types
+              value:
+                - Logs
+                - Metrics
+                - Traces
+            - name: listen_address
+              value: 0.0.0.0
+            - name: grpc_port
+              value: 4317
+            - name: http_port
+              value: 4318
+            - name: grpc_max_recv_msg_size_mib
+              value: 20
+            - name: enable_tls
+              value: false
+            - name: cert_file
+              value: ""
+            - name: key_file
+              value: ""
+            - name: mutual_tls
+              value: false
+            - name: ca_file
+              value: ""
+            - name: enable_grpc_timeout
+              value: true
+            - name: grpc_max_connection_idle
+              value: 60
+            - name: grpc_max_connection_age
+              value: 60
+            - name: grpc_max_connection_age_grace
+              value: 300
+            - name: include_metadata
+              value: false
+            - name: enable_cors
+              value: false
+            - name: cors_allowed_origins
+              value: []
+            - name: cors_allowed_headers
+              value: []
+            - name: cors_max_age
+              value: 0
+          routes:
+            logs:
+                - id: "0"
+                  components:
+                    - destinations/d-loadbalancing
+            metrics:
+                - id: "0"
+                  components:
+                    - destinations/d-loadbalancing
+            traces:
+                - id: "0"
+                  components:
+                    - destinations/d-loadbalancing
+    destinations:
+        - id: d-loadbalancing
+          name: loadbalancing
+    selector:
+        matchLabels:
+            configuration: lb

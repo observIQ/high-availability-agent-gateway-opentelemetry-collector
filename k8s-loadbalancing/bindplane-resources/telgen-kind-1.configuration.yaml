@@ -1,0 +1,55 @@
+apiVersion: bindplane.observiq.com/v2
+kind: Configuration
+metadata:
+    name: telgen-kind-1
+    labels:
+        agent-type: observiq-otel-collector
+        platform: kubernetes-daemonset
+spec:
+    contentType: ""
+    measurementInterval: ""
+    topologyInterval: ""
+    disableLegacyEnvVarNormalization: false
+    sources:
+        - id: 01K0GQ3614KGYRD6BFQATJATNG
+          type: custom
+          parameters:
+            - name: telemetry_types
+              value:
+                - Logs
+                - Metrics
+                - Traces
+            - name: configuration
+              value: |-
+                telemetrygeneratorreceiver:
+                        generators:
+                            - additional_config:
+                                body: 127.0.0.1 - - [30/Jun/2025:12:00:00 +0000] \"GET /index.html HTTP/1.1\" 200 512
+                                severity: 9
+                              type: logs
+                        payloads_per_second: 1
+          routes:
+            logs:
+                - id: "0"
+                  components:
+                    - destinations/01K0GQCCMH9GWX9Z2KGD7DCGKP
+            metrics:
+                - id: "0"
+            traces:
+                - id: "0"
+    destinations:
+        - id: 01K0GQCCMH9GWX9Z2KGD7DCGKP
+          name: gw-kind-1
+          processors:
+            - id: 01K0P40W36JX0VSPNTT1TN27MZ
+              type: batch
+              parameters:
+                - name: send_batch_size
+                  value: 8192
+                - name: send_batch_max_size
+                  value: 0
+                - name: timeout
+                  value: 200ms
+    selector:
+        matchLabels:
+            configuration: telgen-kind-1
