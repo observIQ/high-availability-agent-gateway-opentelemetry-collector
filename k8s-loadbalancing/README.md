@@ -90,3 +90,27 @@ kubectl config use-context kind-kind-2
 kubectl apply -f gateway-collector-kind-2.yaml
 kubectl apply -f gateway-nodeport-service.yaml
 ```
+
+Find the IP and Port for the `kind-2` cluster and `nodeport` service.
+
+```bash
+# Get the NodePort
+kubectl --context kind-kind-2 get svc -n bindplane-agent bindplane-gateway-agent-nodeport
+
+[Output]
+bindplane-gateway-agent-nodeport   NodePort   10.96.229.228   <none>        4317:30317/TCP,4318:30318/TCP   12m
+
+# Get kind-2's container IP
+docker inspect kind-2-control-plane | grep IPAddress
+
+[Output]
+...
+"IPAddress": "172.18.0.3",
+...
+```
+
+For this example you'll configure the `external-gw-kind-2` destination to use the hostname:
+
+```bash
+172.18.0.3:30317 (grpc)
+```
